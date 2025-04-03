@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RG Digital</title>
+
+  <!-- PWA: Manifesto -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background-color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    body.fullscreen-enabled {
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px;
+      border-bottom: 1px solid #ccc;
+      font-weight: 500;
+      font-size: 18px;
+    }
+
+    .header .left,
+    .header .right {
+      color: #007aff;
+      font-size: 16px;
+      cursor: pointer;
+      width: 80px;
+      text-align: center;
+    }
+
+    .header .center {
+      flex: 1;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .status {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: #333;
+      border-bottom: 1px solid #eee;
+      text-align: center;
+    }
+
+    .status img {
+      width: 20px;
+      margin-right: 8px;
+    }
+
+    .image-area {
+      height: calc(100vh - 174px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      touch-action: pan-y;
+    }
+
+    .rg-image {
+      max-height: 100%;
+      width: 100vw;
+      height: auto;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+      display: none;
+    }
+
+    .rg-image.active {
+      display: block;
+    }
+
+    .footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: white;
+      border-top: 1px solid #ccc;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+
+    .footer img {
+      width: 28px;
+      opacity: 0.5;
+      transition: opacity 0.2s ease;
+      cursor: pointer;
+    }
+
+    .footer img.active {
+      opacity: 1;
+      filter: hue-rotate(180deg);
+    }
+
+    #senha-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    #senha-container input {
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    #senha-container button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+
+    #mensagem-erro {
+      color: red;
+      margin-top: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Tela de senha -->
+  <div id="senha-container">
+    <h2>Digite a senha para acessar</h2>
+    <input type="password" id="senha-input" placeholder="Senha">
+    <button onclick="verificarSenha()">Entrar</button>
+    <p id="mensagem-erro">Senha incorreta</p>
+  </div>
+
+  <!-- Conteúdo principal -->
+  <div class="header">
+    <div class="left" onclick="abrirOutroRG()">Outro RG</div>
+    <div class="center" id="title">Frente</div>
+    <div class="right">⋯</div>
+  </div>
+
+  <div class="status" id="updateStatus">
+    <img src="https://img.icons8.com/color/48/000000/ok--v1.png" alt="check">
+    Atualizando...
+  </div>
+
+  <div class="image-area">
+    <img id="imgFront" src="heitorfrente.png" alt="Frente do RG" class="rg-image active">
+    <img id="imgBack" src="heitorverso.png" alt="Verso do RG" class="rg-image">
+  </div>
+
+  <div class="footer">
+    <img src="https://img.icons8.com/ios-filled/50/user.png" id="icon-front" class="active" alt="frente">
+    <img src="https://img.icons8.com/ios-filled/50/fingerprint.png" id="btn-fullscreen" alt="fullscreen">
+    <img src="https://img.icons8.com/ios-filled/50/grid.png" alt="grid">
+  </div>
+
+  <script>
+    function verificarSenha() {
+      const senhaCorreta = "0208";
+      const input = document.getElementById('senha-input').value;
+      const erro = document.getElementById('mensagem-erro');
+
+      if (input === senhaCorreta) {
+        document.getElementById('senha-container').style.display = 'none';
+      } else {
+        erro.style.display = 'block';
+      }
+    }
+
+    const title = document.getElementById('title');
+    const imgFront = document.getElementById('imgFront');
+    const imgBack = document.getElementById('imgBack');
+    const iconFront = document.getElementById('icon-front');
+    const updateStatus = document.getElementById('updateStatus');
+    const btnFullscreen = document.getElementById('btn-fullscreen');
+
+    let showingFront = true;
+
+    function toggleRG() {
+      showingFront = !showingFront;
+      imgFront.classList.toggle('active', showingFront);
+      imgBack.classList.toggle('active', !showingFront);
+      title.textContent = showingFront ? 'Frente' : 'Verso';
+      iconFront.classList.toggle('active', showingFront);
+    }
+
+    iconFront.addEventListener('click', () => {
+      showingFront = true;
+      imgFront.classList.add('active');
+      imgBack.classList.remove('active');
+      title.textContent = 'Frente';
+      iconFront.classList.add('active');
+    });
+
+    function atualizarDataHora() {
+      const agora = new Date();
+      const dia = String(agora.getDate()).padStart(2, '0');
+      const mes = String(agora.getMonth() + 1).padStart(2, '0');
+      const ano = agora.getFullYear();
+      const hora = String(agora.getHours()).padStart(2, '0');
+      const minutos = String(agora.getMinutes()).padStart(2, '0');
+      const texto = `Atualizado em ${dia}/${mes}/${ano} às ${hora}:${minutos}`;
+
+      updateStatus.innerHTML = `
+        <img src="https://img.icons8.com/color/48/000000/ok--v1.png" alt="check">
+        ${texto}
+      `;
+    }
+
+    atualizarDataHora();
+
+    btnFullscreen.addEventListener('click', () => {
+      const docElm = document.documentElement;
+
+      if (!document.fullscreenElement &&
+          !document.webkitFullscreenElement &&
+          !document.msFullscreenElement) {
+
+        if (docElm.requestFullscreen) {
+          docElm.requestFullscreen().catch(err => console.warn("Erro ao entrar em fullscreen:", err));
+        } else if (docElm.webkitRequestFullscreen) {
+          docElm.webkitRequestFullscreen();
+        } else if (docElm.msRequestFullscreen) {
+          docElm.msRequestFullscreen();
+        } else {
+          alert("Este navegador não suporta fullscreen.");
+        }
+
+        document.body.classList.add("fullscreen-enabled");
+
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+
+        document.body.classList.remove("fullscreen-enabled");
+      }
+    });
+
+    let startX = 0;
+
+    function handleTouchStart(evt) {
+      startX = evt.touches[0].clientX;
+    }
+
+    function handleTouchEnd(evt) {
+      const endX = evt.changedTouches[0].clientX;
+      const diff = endX - startX;
+
+      if (Math.abs(diff) > 50) {
+        toggleRG();
+      }
+    }
+
+    const imageArea = document.querySelector('.image-area');
+    imageArea.addEventListener('touchstart', handleTouchStart, false);
+    imageArea.addEventListener('touchend', handleTouchEnd, false);
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('✅ Service Worker registrado!'))
+        .catch((err) => console.error('Erro no Service Worker:', err));
+    }
+
+    // Função para abrir a outra página de RG
+    function abrirOutroRG() {
+      window.open('outra_rg.html', '_blank');
+    }
+  </script>
+
+</body>
+</html>
